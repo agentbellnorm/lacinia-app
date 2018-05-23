@@ -110,22 +110,35 @@
     (->> (d/q query db member-id)
          (map #(let [[game-id rating] %]
                  {:member_id member-id
-                  :game_id game-id
-                  :rating rating})))))
+                  :game_id   game-id
+                  :rating    rating})))))
 
-(defn ^:private apply-game-rating
-  [game-ratings game-id member-id rating]
-  "internal-upsert-game-rating"
-  (->> game-ratings
-       (remove #(and (= game-id (:game_id %))
-                     (= member-id (:member_id %))))
-       (cons {:game_id   game-id
-              :member_id member-id
-              :rating    rating})))
+(defn ^:private create-game-rating
+  [component member-id game-id rating]
+  "creates a new game rating if"
+  (d/transact (:connection component) {:tx-data [{:rating/member-id member-id
+                                                  :rating/game-id   game-id
+                                                  :rating/rating    rating}]}))
+
+(defn ^:private update-game-rating
+  [component e-id rating]
+  "updates an existing game rating datom"
+  (d/transact (:connection component) {:tx-data [{:db/id         e-id
+                                                  :rating/rating rating}]}))
 
 (defn internal-upsert-game-rating
   "Adds a new game rating or changes the old value of an existing game rating"
-  [db game-id member-id rating])
+  [component game-id member-id rating]
+  (let [db (d/db (:connection component))
+        get-query '[:find ?e
+                    :in $ ?game-id ?member-id ?rating
+                    :where
+                    [?e :rating/game-id ?game-id]
+                    [?e :rating/member-id ?member-id]]]
+    (let [e-id (first (printret (d/q get-query db game-id member-id)))]
+      (if (nil? e-id)
+        (create-game-rating component member-id game-id rating)
+        (update-game-rating component e-id rating)))))
 
 (defn config []
   {:server-type :peer-server

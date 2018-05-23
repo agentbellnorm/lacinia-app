@@ -27,6 +27,10 @@ datomic-db.user/conn
 
 (datomic-db.db/internal-list-games-for-designer {:connection conn} "200")
 
+(datomic-db.db/internal-list-ratings-for-member {:connection conn} "37")
+
 (datomic-db.db/internal-list-ratings-for-game {:connection conn} "1237")
 
-(datomic-db.db/internal-list-ratings-for-member {:connection conn} "37")
+(comment {:rating/member-id "2812" :rating/game-id "1237" :rating/rating 4})
+
+(datomic-db.db/internal-upsert-game-rating {:connection conn} "1237" "2812" -1)
