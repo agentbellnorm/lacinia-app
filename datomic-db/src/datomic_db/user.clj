@@ -1,7 +1,8 @@
 (ns datomic-db.user
   (:require [datomic.client.api :as d]
             [datomic-db.init :as init]
-            [datomic-db.db :as db]))
+            [datomic-db.db :as db]
+            [lacinia-core.schema :as schema]))
 
 (def cfg {:server-type :peer-server
           :access-key  "myaccesskey"
@@ -23,3 +24,9 @@ datomic-db.user/conn
 (datomic-db.db/internal-find-member-by-id {:connection conn} "37")
 
 (datomic-db.db/internal-list-designers-for-game {:connection conn} "1235")
+
+(datomic-db.db/internal-list-games-for-designer {:connection conn} "200")
+
+(datomic-db.db/internal-list-ratings-for-game {:connection conn} "1237")
+
+(datomic-db.db/internal-list-ratings-for-member {:connection conn} "37")

@@ -47,9 +47,13 @@
 
 (start)
 
+(comment (stop))
+
 (q "{ game_by_id(id: \"1237\") { name rating_summary { count average }}}")
+(q "{ game_by_id(id: \"1237\") { name }}")
 
 (q "{ member_by_id(id: \"1410\") { member_name ratings { game { id name } rating }}}")
+(q "{ member_by_id(id: \"1410\") { member_name }}")
 
 (q "{ member_by_id(id: \"1410\") { member_name ratings { game { name rating_summary { count average } designers { name  games { name }}} rating }}}")
 

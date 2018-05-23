@@ -12,7 +12,7 @@
 (defn internal-find-game-by-id
   [component game-id]
   (let [db (d/db (:connection component))
-        query '[:find ?name ?summary ?min-players ?max-players ?designers
+        query '[:find ?name ?summary ?min-players ?max-players ?designers ;; TODO wrappa i vektor för att bara få ett resultat
                 :in $ ?id
                 :where [?e :game/name ?name]
                 [?e :game/summary ?summary]
@@ -59,19 +59,63 @@
        :url  url})))
 
 (defn internal-list-games-for-designer
-  [db designer-id]
-  "internal-list-games-for-designer")
+  [component designer-id]
+  "internal-list-games-for-designer"
+  (let [db (d/db (:connection component))
+        query '[:find ?name ?summary ?min-players ?max-players ?designers ?game-id
+                :in $ ?id
+                :where
+                [?e :game/designers ?id]                    ;; TODO måste vara i en lista?
+                [?e :game/name ?name]
+                [?e :game/summary ?summary]
+                [?e :game/min-players ?min-players]
+                [?e :game/max-players ?max-players]
+                [?e :game/designers ?designers]
+                [?e :game/id ?game-id]]]
+    (->> (d/q query db designer-id)
+         (map #(let [[name summary min-players max-players designers game-id] %]
+                 {:id          game-id
+                  :name        name
+                  :summary     summary
+                  :min_players min-players
+                  :max_players max-players
+                  :designers   designers})))))
 
 (defn internal-list-ratings-for-game
-  [db game-id]
-  "internal-list-ratings-for-game")
+  [component game-id]
+  "internal-list-ratings-for-game"
+  (printret (let [db (d/db (:connection component))
+                  query '[:find ?member-id ?rating
+                          :in $ ?id
+                          :where
+                          [?e :rating/game-id ?id]
+                          [?e :rating/member-id ?member-id]
+                          [?e :rating/rating ?rating]]]
+              (->> (d/q query db game-id)
+                   (map #(let [[member-id rating] %]
+                           {:game_id   game-id
+                            :member_id member-id
+                            :rating    rating}))))))
 
 (defn internal-list-ratings-for-member
-  [db member-id]
-  "internal-list-ratings-for-member")
+  [component member-id]
+  "internal-list-ratings-for-member"
+  (let [db (d/db (:connection component))
+        query '[:find ?game-id ?rating
+                :in $ ?id
+                :where
+                [?e :rating/member-id ?id]
+                [?e :rating/rating ?rating]
+                [?e :rating/game-id ?game-id]]]
+    (->> (d/q query db member-id)
+         (map #(let [[game-id rating] %]
+                 {:member_id member-id
+                  :game_id game-id
+                  :rating rating})))))
 
 (defn ^:private apply-game-rating
   [game-ratings game-id member-id rating]
+  "internal-upsert-game-rating"
   (->> game-ratings
        (remove #(and (= game-id (:game_id %))
                      (= member-id (:member_id %))))
@@ -81,8 +125,7 @@
 
 (defn internal-upsert-game-rating
   "Adds a new game rating or changes the old value of an existing game rating"
-  [db game-id member-id rating]
-  "internal-upsert-game-rating")
+  [db game-id member-id rating])
 
 (defn config []
   {:server-type :peer-server

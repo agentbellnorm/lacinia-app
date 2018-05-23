@@ -31,7 +31,7 @@
   :Member
   {:description "A member of Clojure Game Geek.  Members can rate games."
    :fields
-                {:id {:type (non-null ID)}
+                  {:id {:type (non-null ID)}
                  :member_name {:type (non-null String)
                                :description "Unique name of member."}
                  :ratings {:type (list :GameRating)

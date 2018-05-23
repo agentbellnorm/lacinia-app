@@ -56,7 +56,7 @@
   (fn [_ _ board-game]
     (let [ratings (map :rating (db/list-ratings-for-game db (:id board-game)))
           n (count ratings)]
-      {:count n
+      {:count   n
        :average (if (zero? n)
                   0
                   (/ (apply + ratings)
